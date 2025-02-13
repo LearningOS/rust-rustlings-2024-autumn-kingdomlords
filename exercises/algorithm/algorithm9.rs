@@ -2,7 +2,7 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
+
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -37,7 +37,22 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.items.push(value);
+        self.count += 1;
+        self.bubble_up(self.count);
+    }
+
+    fn bubble_up(&mut self, idx: usize) {
+        let mut current_idx = idx;
+        while current_idx > 1 {
+            let parent_idx = self.parent_idx(current_idx);
+            if (self.comparator)(&self.items[current_idx], &self.items[parent_idx]) {
+                self.items.swap(current_idx, parent_idx);
+                current_idx = parent_idx;
+            } else {
+                break;
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +72,27 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+
+        if right <= self.count && (self.comparator)(&self.items[right], &self.items[left]) {
+            right
+        } else {
+            left
+        }
+    }
+
+    fn bubble_down(&mut self, idx: usize) {
+        let mut current_idx = idx;
+        while self.children_present(current_idx) {
+            let child_idx = self.smallest_child_idx(current_idx);
+            if (self.comparator)(&self.items[child_idx], &self.items[current_idx]) {
+                self.items.swap(current_idx, child_idx);
+                current_idx = child_idx;
+            } else {
+                break;
+            }
+        }
     }
 }
 
@@ -79,13 +113,22 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+        if self.is_empty() {
+            None
+        } else {
+            let root = self.items[1].clone();
+            self.items.swap(1, self.count);
+            self.count -= 1;
+            self.items.pop(); // Remove the last element
+            self.bubble_down(1); // Restore heap property
+            Some(root)
+        }
     }
 }
 
@@ -97,7 +140,7 @@ impl MinHeap {
     where
         T: Default + Ord,
     {
-        Heap::new(|a, b| a < b)
+        Heap::new_min()
     }
 }
 
@@ -109,13 +152,14 @@ impl MaxHeap {
     where
         T: Default + Ord,
     {
-        Heap::new(|a, b| a > b)
+        Heap::new_max()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    
     #[test]
     fn test_empty_heap() {
         let mut heap = MaxHeap::new::<i32>();

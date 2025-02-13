@@ -2,11 +2,10 @@
 	double linked list reverse
 	This problem requires you to reverse a doubly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -48,14 +47,20 @@ impl<T> LinkedList<T> {
 
     pub fn add(&mut self, obj: T) {
         let mut node = Box::new(Node::new(obj));
-        node.next = None;
-        node.prev = self.end;
         let node_ptr = Some(unsafe { NonNull::new_unchecked(Box::into_raw(node)) });
         match self.end {
-            None => self.start = node_ptr,
-            Some(end_ptr) => unsafe { (*end_ptr.as_ptr()).next = node_ptr },
+            None => {
+                self.start = node_ptr;
+                self.end = node_ptr;
+            },
+            Some(end_ptr) => {
+                unsafe {
+                    (*end_ptr.as_ptr()).next = node_ptr;
+                    (*node_ptr.unwrap().as_ptr()).prev = Some(end_ptr);
+                }
+                self.end = node_ptr;
+            },
         }
-        self.end = node_ptr;
         self.length += 1;
     }
 
@@ -74,8 +79,27 @@ impl<T> LinkedList<T> {
     }
 	pub fn reverse(&mut self){
 		// TODO
+        let mut current = self.start;
+        let mut temp = None;
+
+        while let Some(node_ptr) = current {
+            unsafe {
+                // 交换 next 和 prev
+                let next = (*node_ptr.as_ptr()).next;
+                (*node_ptr.as_ptr()).next = temp;
+                (*node_ptr.as_ptr()).prev = next;
+
+                // 移动到下一个节点
+                temp = Some(node_ptr);
+                current = next;
+            }
+        }
+
+        // 更新 start 和 end
+        std::mem::swap(&mut self.start, &mut self.end);
 	}
 }
+
 
 impl<T> Display for LinkedList<T>
 where

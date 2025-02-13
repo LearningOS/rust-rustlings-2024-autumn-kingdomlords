@@ -44,6 +44,36 @@ impl Default for Person {
 
 impl From<&str> for Person {
     fn from(s: &str) -> Person {
+        // 如果输入字符串为空，返回默认 Person
+        if s.is_empty() {
+            return Person::default();
+        }
+
+        // 分割字符串
+        let parts: Vec<&str> = s.split(',').collect();
+
+        // 提取 name
+        let name = parts.get(0).unwrap_or(&"").to_string();
+
+        // 如果 name 为空，返回默认 Person
+        if name.is_empty() {
+            return Person::default();
+        }
+
+        // 提取 age，并处理空值和解析错误
+        let age = match parts.get(1) {
+            Some(age_str) if !age_str.is_empty() => {
+                age_str.parse::<usize>().unwrap_or(0) // 解析失败返回 0
+            },
+            _ => 0, // 如果没有提供年龄，返回 0
+        };
+
+        // 如果年龄为 0 或者未提供年龄，返回默认的 Person
+        if age == 0 {
+            return Person::default();
+        }
+
+        Person { name, age }
     }
 }
 
@@ -59,31 +89,30 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_default() {
-        // Test that the default person is 30 year old John
         let dp = Person::default();
         assert_eq!(dp.name, "John");
         assert_eq!(dp.age, 30);
     }
+    
     #[test]
     fn test_bad_convert() {
-        // Test that John is returned when bad string is provided
         let p = Person::from("");
         assert_eq!(p.name, "John");
         assert_eq!(p.age, 30);
     }
+    
     #[test]
     fn test_good_convert() {
-        // Test that "Mark,20" works
         let p = Person::from("Mark,20");
         assert_eq!(p.name, "Mark");
         assert_eq!(p.age, 20);
     }
+    
     #[test]
     fn test_bad_age() {
-        // Test that "Mark,twenty" will return the default person due to an
-        // error in parsing age
         let p = Person::from("Mark,twenty");
         assert_eq!(p.name, "John");
         assert_eq!(p.age, 30);

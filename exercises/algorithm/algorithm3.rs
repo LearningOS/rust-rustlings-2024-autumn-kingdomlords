@@ -3,11 +3,22 @@
 	This problem requires you to implement a sorting algorithm
 	you can use bubble sorting, insertion sorting, heap sorting, etc.
 */
-// I AM NOT DONE
 
-fn sort<T>(array: &mut [T]){
-	//TODO
+
+fn sort<T: Ord + Clone>(array: &mut [T]) {
+    let len = array.len();
+    for i in 1..len {
+        let key = array[i].clone(); // 取出当前元素
+        let mut j = i;
+        // 将当前元素插入到已排序部分
+        while j > 0 && array[j - 1] > key {
+            array[j] = array[j - 1].clone(); // 移动元素
+            j -= 1;
+        }
+        array[j] = key; // 插入当前元素
+    }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;

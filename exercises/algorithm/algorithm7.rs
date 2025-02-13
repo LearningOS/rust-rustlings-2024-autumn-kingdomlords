@@ -32,19 +32,26 @@ impl<T> Stack<T> {
 	}
 	fn pop(&mut self) -> Option<T> {
 		// TODO
-		None
+		if self.is_empty() {
+            None
+        } else {
+            self.size -= 1;
+            self.data.pop()
+        }
 	}
 	fn peek(&self) -> Option<&T> {
-		if 0 == self.size {
-			return None;
-		}
-		self.data.get(self.size - 1)
+		if self.is_empty() {
+            None
+        } else {
+            self.data.get(self.size - 1)
+        }
 	}
 	fn peek_mut(&mut self) -> Option<&mut T> {
-		if 0 == self.size {
-			return None;
-		}
-		self.data.get_mut(self.size - 1)
+		if self.is_empty() {
+            None
+        } else {
+            self.data.get_mut(self.size - 1)
+        }
 	}
 	fn into_iter(self) -> IntoIter<T> {
 		IntoIter(self)
@@ -73,7 +80,8 @@ impl<T: Clone> Iterator for IntoIter<T> {
 	type Item = T;
 	fn next(&mut self) -> Option<Self::Item> {
 		if !self.0.is_empty() {
-			self.0.size -= 1;self.0.data.pop()
+			self.0.size -= 1;
+			self.0.data.pop()
 		} 
 		else {
 			None
@@ -85,6 +93,7 @@ struct Iter<'a, T: 'a> {
 }
 impl<'a, T> Iterator for Iter<'a, T> {
 	type Item = &'a T;
+
 	fn next(&mut self) -> Option<Self::Item> {
 		self.stack.pop()
 	}
@@ -94,15 +103,52 @@ struct IterMut<'a, T: 'a> {
 }
 impl<'a, T> Iterator for IterMut<'a, T> {
 	type Item = &'a mut T;
+
 	fn next(&mut self) -> Option<Self::Item> {
 		self.stack.pop()
 	}
 }
 
+struct IterMut<'a, T: 'a> {
+    stack: Vec<&'a mut T>,
+}
+
+impl<'a, T> Iterator for IterMut<'a, T> {
+    type Item = &'a mut T;
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        self.stack.pop()
+    }
+}
+
 fn bracket_match(bracket: &str) -> bool
 {
 	//TODO
-	true
+	let mut stack = Stack::new();
+    
+    for ch in bracket.chars() {
+        match ch {
+            '(' | '{' | '[' => stack.push(ch),
+            ')' => {
+                if stack.pop() != Some('(') {
+                    return false;
+                }
+            },
+            '}' => {
+                if stack.pop() != Some('{') {
+                    return false;
+                }
+            },
+            ']' => {
+                if stack.pop() != Some('[') {
+                    return false;
+                }
+            },
+            _ => {} // Ignore non-bracket characters
+        }
+    }
+    
+    stack.is_empty()
 }
 
 #[cfg(test)]
