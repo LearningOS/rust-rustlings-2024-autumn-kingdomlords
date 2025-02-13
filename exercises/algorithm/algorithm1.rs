@@ -2,11 +2,11 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
+
 
 #[derive(Debug)]
 struct Node<T> {
@@ -69,15 +69,79 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+	pub fn merge(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self
+    where
+        T: Ord,
+    {
+        let mut merged = LinkedList::new();
+
+        // 取出两个链表的头节点，并将原链表的start设为None
+        let mut a_head = list_a.start.take();
+        let mut b_head = list_b.start.take();
+        // 将原链表的end设为None，length设为0，以避免析构时释放节点
+        list_a.end = None;
+        list_b.end = None;
+        list_a.length = 0;
+        list_b.length = 0;
+
+        let mut merged_tail: Option<NonNull<Node<T>>> = None; // 追踪新链表的当前尾节点
+
+        // 合并过程
+        loop {
+            match (a_head, b_head) {
+                (Some(a_ptr), Some(b_ptr)) => {
+                    let a_val = unsafe { &(*a_ptr.as_ptr()).val };
+                    let b_val = unsafe { &(*b_ptr.as_ptr()).val };
+
+                    if a_val <= b_val {
+                        // 将a节点加入新链表
+                        if let Some(tail) = merged_tail {
+                            unsafe { (*tail.as_ptr()).next = Some(a_ptr) };
+                        } else {
+                            merged.start = Some(a_ptr);
+                        }
+                        merged_tail = Some(a_ptr);
+                        a_head = unsafe { (*a_ptr.as_ptr()).next };
+                    } else {
+                        // 将b节点加入新链表
+                        if let Some(tail) = merged_tail {
+                            unsafe { (*tail.as_ptr()).next = Some(b_ptr) };
+                        } else {
+                            merged.start = Some(b_ptr);
+                        }
+                        merged_tail = Some(b_ptr);
+                        b_head = unsafe { (*b_ptr.as_ptr()).next };
+                    }
+                    merged.length += 1;
+                }
+                _ => break,
+            }
         }
-	}
+
+        // 处理剩余的节点
+        let remaining = if a_head.is_some() { a_head } else { b_head };
+        if let Some(remain_ptr) = remaining {
+            if let Some(tail) = merged_tail {
+                unsafe { (*tail.as_ptr()).next = Some(remain_ptr) };
+            } else {
+                merged.start = Some(remain_ptr);
+            }
+
+            // 更新新链表的尾节点并计算剩余节点的数量
+            let mut current = remain_ptr;
+            let mut count = 1;
+            while let Some(next) = unsafe { (*current.as_ptr()).next } {
+                current = next;
+                count += 1;
+            }
+            merged.end = Some(current);
+            merged.length += count;
+        } else {
+            merged.end = merged_tail;
+        }
+
+        merged
+    }
 }
 
 impl<T> Display for LinkedList<T>

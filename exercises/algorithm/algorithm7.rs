@@ -3,7 +3,7 @@
 	This question requires you to use a stack to achieve a bracket match
 */
 
-// I AM NOT DONE
+
 #[derive(Debug)]
 struct Stack<T> {
 	size: usize,
@@ -109,17 +109,7 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 	}
 }
 
-struct IterMut<'a, T: 'a> {
-    stack: Vec<&'a mut T>,
-}
 
-impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = &'a mut T;
-    
-    fn next(&mut self) -> Option<Self::Item> {
-        self.stack.pop()
-    }
-}
 
 fn bracket_match(bracket: &str) -> bool
 {
@@ -148,7 +138,7 @@ fn bracket_match(bracket: &str) -> bool
         }
     }
     
-    stack.is_empty()
+    stack.is_empty()// 栈空说明所有括号匹配完成
 }
 
 #[cfg(test)]
