@@ -39,8 +39,6 @@ fn main() {}
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_success() {
         let timestamp = std::time::SystemTime::now()
@@ -55,16 +53,3 @@ mod tests {
 
 // build.rs
 
-use std::time::{SystemTime, UNIX_EPOCH};
-
-fn main() {
-    // 获取当前的 UNIX 时间戳
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards")
-        .as_secs();
-
-    // 设置环境变量 TEST_FOO
-    println!("cargo:rerun-if-changed=build.rs"); // 使得每次 build.rs 改变时重新运行
-    println!("cargo:rustc-env=TEST_FOO={}", timestamp);
-}
